@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>360 Product View</title>
+    <style>
+        /* Main UI color theme - red and black/white */
+        :root {
+            --primary-bg: #f0f0f0;
+            --secondary-bg: #ffffff;
+            --text-color: #1a1a1a;
+            --accent-color: #e53935; /* Bright red */
+            --border-color: #ccc;
+        }
+
+        /* Full page background */
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--primary-bg);
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            color: var(--text-color);
+        }
+        
+        /* Main container for image and controls */
+        .container {
+            position: relative; /* This is needed for the animations */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--secondary-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+
+            /* Responsive padding */
+            padding: 1rem;
+            max-width: 90%;
+        }
+
+        /* Image display area */
+        #image-container {
+            width: 80vw;
+            max-width: 600px;
+            aspect-ratio: 1 / 1;
+            cursor: grab;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            user-select: none;
+            -webkit-user-drag: none;
+            transition: box-shadow 0.3s ease;
+        }
+        #image-container.grabbing {
+            cursor: grabbing;
+            box-shadow: 0 0 15px var(--accent-color);
+        }
+        #product-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        /* 360-degree spinner */
+        .spinner {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border: 3px solid transparent;
+            border-top-color: var(--accent-color);
+            border-bottom-color: var(--accent-color);
+            border-radius: 50%;
+            animation: spin 3s linear infinite;
+        }
+        .spinner::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* SENARO GN 125 text animation */
+        .text-spinner {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            text-align: center;
+            color: var(--accent-color);
+            font-size: 1.5em;
+            font-weight: bold;
+            animation: text-glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes text-glow {
+            from {
+                text-shadow: 0 0 5px var(--accent-color);
+                transform: scale(1);
+            }
+            to {
+                text-shadow: 0 0 15px var(--accent-color);
+                transform: scale(1.05);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="image-container">
+        <img id="product-image" src="product-image/product-001 (1).jpg" alt="360 Product View">
+        <div class="spinner"></div>
+        <div class="text-spinner">SENARO GN 125</div>
+    </div>
+</div>
+
+<script>
+    // HTML element identifiers
+    const imageContainer = document.getElementById('image-container');
+    const productImage = document.getElementById('product-image');
+    
+    // State variables
+    let isDragging = false;
+    let startX = 0;
+    let currentFrame = 1;
+    
+    // The total number of frames. This value is from your image folder.
+    const totalFrames = 75; 
+
+    // Function to update the image
+    function updateImage(frame) {
+        // Ensure the frame number is within the valid range
+        if (frame > totalFrames) {
+            frame = 1;
+        } else if (frame < 1) {
+            frame = totalFrames;
+        }
+        currentFrame = frame;
+        
+        // Update the image source
+        // This is the key part that needs to match your file naming convention.
+        productImage.src = `product-image/product-001 (${currentFrame}).jpg`;
+    }
+
+    // Mouse events for dragging
+    imageContainer.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.clientX;
+        imageContainer.classList.add('grabbing');
+    });
+
+    imageContainer.addEventListener('mouseup', () => {
+        isDragging = false;
+        imageContainer.classList.remove('grabbing');
+    });
+
+    imageContainer.addEventListener('mouseleave', () => {
+        isDragging = false;
+        imageContainer.classList.remove('grabbing');
+    });
+
+    imageContainer.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+
+        const deltaX = e.clientX - startX;
+        const sensitivity = 5;
+        
+        if (Math.abs(deltaX) > sensitivity) {
+            const frameChange = Math.floor(deltaX / sensitivity);
+            updateImage(currentFrame - frameChange);
+            startX = e.clientX;
+        }
+    });
+
+    // Touch events for mobile devices
+    imageContainer.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        startX = e.touches[0].clientX;
+        imageContainer.classList.add('grabbing');
+    }, {passive: true});
+
+    imageContainer.addEventListener('touchend', () => {
+        isDragging = false;
+        imageContainer.classList.remove('grabbing');
+    });
+
+    imageContainer.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+
+        const deltaX = e.touches[0].clientX - startX;
+        const sensitivity = 5;
+
+        if (Math.abs(deltaX) > sensitivity) {
+            const frameChange = Math.floor(deltaX / sensitivity);
+            updateImage(currentFrame - frameChange);
+            startX = e.touches[0].clientX;
+        }
+    }, {passive: true});
+</script>
+
+</body>
+</html>
