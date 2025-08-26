@@ -4,10 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>360 Product View</title>
-    <!-- jQuery Library -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- SpriteSpin Plugin -->
-    <script src="https://unpkg.com/spritespin@4.1.0/release/spritespin.js"></script>
     <style>
         /* Main UI color theme - red and black/white */
         :root {
@@ -48,13 +44,26 @@
             max-width: 90%;
         }
 
-        /* SpriteSpin Container */
-        .spritespin {
+        /* Image display area */
+        #image-container {
             width: 80vw;
             max-width: 600px;
-            height: 80vw;
-            max-height: 600px;
+            aspect-ratio: 1 / 1;
+            cursor: grab;
             border: 2px solid var(--border-color);
+            border-radius: 8px;
+            user-select: none;
+            -webkit-user-drag: none;
+            transition: box-shadow 0.3s ease;
+        }
+        #image-container.grabbing {
+            cursor: grabbing;
+            box-shadow: 0 0 15px var(--accent-color);
+        }
+        #product-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
             border-radius: 8px;
         }
 
@@ -115,24 +124,95 @@
 <body>
 
 <div class="container">
-    <div id="product-spin" class="spritespin"></div>
-    <div class="spinner"></div>
-    <div class="text-spinner">SENARO GN 125</div>
+    <div id="image-container">
+        <img id="product-image" src="product-image/product-001 (1).webp" alt="360 Product View">
+        <div class="spinner"></div>
+        <div class="text-spinner">SENARO GN 125</div>
+    </div>
 </div>
 
 <script>
-    // Initialize SpriteSpin on the container
-    $("#product-spin").spritespin({
-        // The source is now a single spritesheet image instead of an array of images.
-        source: 'product-image/css_sprites.png',
-        width: 600, // The width of a single frame in your spritesheet
-        height: 400, // The height of a single frame in your spritesheet
-        frames: 75,
-        sense: -1, 
-        responsive: true,
-        animate: false,
-        orientation: 'vertical' // This tells the plugin to scroll vertically through the frames
+    // HTML element identifiers
+    const imageContainer = document.getElementById('image-container');
+    const productImage = document.getElementById('product-image');
+    
+    // State variables
+    let isDragging = false;
+    let startX = 0;
+    let currentFrame = 1;
+    
+    // The total number of frames. This value is from your image folder.
+    const totalFrames = 75; 
+
+    // Function to update the image
+    function updateImage(frame) {
+        // Ensure the frame number is within the valid range
+        if (frame > totalFrames) {
+            frame = 1;
+        } else if (frame < 1) {
+            frame = totalFrames;
+        }
+        currentFrame = frame;
+        
+        // Update the image source
+        // This is the key part that needs to match your file naming convention.
+        productImage.src = `product-image/product-001 (${currentFrame}).webp`;
+    }
+
+    // Mouse events for dragging
+    imageContainer.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.clientX;
+        imageContainer.classList.add('grabbing');
     });
+
+    imageContainer.addEventListener('mouseup', () => {
+        isDragging = false;
+        imageContainer.classList.remove('grabbing');
+    });
+
+    imageContainer.addEventListener('mouseleave', () => {
+        isDragging = false;
+        imageContainer.classList.remove('grabbing');
+    });
+
+    imageContainer.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+
+        const deltaX = e.clientX - startX;
+        const sensitivity = 5;
+        
+        if (Math.abs(deltaX) > sensitivity) {
+            const frameChange = Math.floor(deltaX / sensitivity);
+            updateImage(currentFrame - frameChange);
+            startX = e.clientX;
+        }
+    });
+
+    // Touch events for mobile devices
+    imageContainer.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        startX = e.touches[0].clientX;
+        imageContainer.classList.add('grabbing');
+    }, {passive: true});
+
+    imageContainer.addEventListener('touchend', () => {
+        isDragging = false;
+        imageContainer.classList.remove('grabbing');
+    });
+
+    imageContainer.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+
+        const deltaX = e.touches[0].clientX - startX;
+        const sensitivity = 5;
+
+        if (Math.abs(deltaX) > sensitivity) {
+            const frameChange = Math.floor(deltaX / sensitivity);
+            updateImage(currentFrame - frameChange);
+            startX = e.touches[0].clientX;
+        }
+    }, {passive: true});
 </script>
 
 </body>
