@@ -121,19 +121,12 @@
 </div>
 
 <script>
-    // Define the image names and format
-    const images = [];
-    const totalFrames = 75;
-    for (let i = 1; i <= totalFrames; i++) {
-        images.push(`product-image/product-001 (${i}).jpg`);
-    }
-
     // Initialize SpriteSpin on the container
     $("#product-spin").spritespin({
-        // Here you should use your individual images. Make sure the path is correct.
-        source: images,
-        width: 600,
-        height: 600,
+        // The source is now a single spritesheet image instead of an array of images.
+        source: 'product-image/css_sprites.png',
+        width: 600, // The width of a single frame in your spritesheet
+        height: 600, // The height of a single frame in your spritesheet
         frames: 75,
         sense: -1, 
         responsive: true,
