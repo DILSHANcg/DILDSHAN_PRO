@@ -125,7 +125,7 @@
 
 <div class="container">
     <div id="image-container">
-        <img id="product-image" src="product-image/product-001 (1).webp" alt="360 Product View">
+        <img id="product-image" src="product-image/product_ (1).webp" alt="360 Product View">
         <div class="spinner"></div>
         <div class="text-spinner">SENARO GN 125</div>
     </div>
@@ -142,7 +142,11 @@
     let currentFrame = 1;
     
     // The total number of frames. This value is from your image folder.
-    const totalFrames = 75; 
+    // NOTE: Your images go from (1) to (142), but then from (100) and up again.
+    // The code assumes that the images are in a linear sequence from 1 to 142.
+    // If your images are not in that order, the animation may not be smooth.
+    // We will use 142 frames based on the files you uploaded.
+    const totalFrames = 142; 
 
     // Function to update the image
     function updateImage(frame) {
@@ -156,7 +160,8 @@
         
         // Update the image source
         // This is the key part that needs to match your file naming convention.
-        productImage.src = `product-image/product-001 (${currentFrame}).webp`;
+        // The code now correctly uses "product_ (1).webp" format.
+        productImage.src = `product-image/product_ (${currentFrame}).webp`;
     }
 
     // Mouse events for dragging
